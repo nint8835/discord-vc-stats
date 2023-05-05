@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/nint8835/parsley"
 	"github.com/rs/zerolog/log"
 
 	"github.com/nint8835/discord-vc-stats/pkg/config"
@@ -81,19 +80,6 @@ func handleVoiceStateUpdate(session *discordgo.Session, update *discordgo.VoiceS
 	}
 }
 
-type testCmdArgs struct {
-	Channel string `description:"Name of the channel."`
-	User    string `description:"Name of the user."`
-}
-
-func joinCommand(message *discordgo.MessageCreate, args testCmdArgs) {
-	metrics.MembersInVoice.WithLabelValues(args.Channel, args.User).Inc()
-}
-
-func leaveCommand(message *discordgo.MessageCreate, args testCmdArgs) {
-	metrics.MembersInVoice.WithLabelValues(args.Channel, args.User).Dec()
-}
-
 func New() (*Bot, error) {
 	bot := &Bot{
 		quitChan: make(chan struct{}),
@@ -107,11 +93,6 @@ func New() (*Bot, error) {
 	bot.Session = session
 
 	session.AddHandler(handleVoiceStateUpdate)
-
-	parser := parsley.New("vcstats!")
-	parser.RegisterHandler(session)
-	parser.NewCommand("leave", "Test a user leaving", leaveCommand)
-	parser.NewCommand("join", "Test a user joining", joinCommand)
 
 	return bot, nil
 }
